@@ -31,6 +31,7 @@ def long_description_read():
 environment = os.environ
 assert "BOM_VERSION" in environment, "BOM_VERSION environment variable is not set"
 version = environment["BOM_VERSION"]
+is_test = version.startswith("0.0.")
 
 # Arguments to *setup*() are in alphabetical order:
 setuptools.setup(
@@ -46,14 +47,16 @@ setuptools.setup(
     entry_points = {
         "bom_manager_panda_get": ["panda_get=bom_findchips_plugin.findchips:panda_get"],
     },
-    #include_package_data=True,
-    # install_requires = [
-    #     "bs4",
-    # ],
+    include_package_data=True,
+    install_requires = [] if is_test else [
+        "bs4",
+        "currency_converter",
+        "requests",
+    ],
     license="MIT",
     long_description=long_description_read(),
     long_description_content_type="text/markdown",
-    name="bom_findchips_plugin_waynegramlich",
+    name=("bom_findchips_plugin_waynegramlich" if is_test else "bom_findchips_plugin"),
     packages=[
         "bom_findchips_plugin",
     ],

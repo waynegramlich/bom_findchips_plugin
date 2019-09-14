@@ -1,3 +1,9 @@
+# # BOM Manager FindChips Plugin
+#
+# A BOM Manager plugin for obtaining Pricing AND Availability (PANDA) from FindChips.Com.
+#
+# ## License
+#
 # MIT License
 # 
 # Copyright (c) 2019 Wayne C. Gramlich
@@ -20,6 +26,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+# Packages need by this module:
 from bom_manager import bom
 import bs4
 from currency_converter import CurrencyConverter
@@ -48,9 +55,10 @@ class FindChips(bom.Panda):
             print(f"{tracing}<=FindChips.__init__()")
 
     # FindChips.vendor_parts_lookup():
-    def vendor_parts_lookup(self, actual_part, tracing=None):
+    def vendor_parts_lookup(self, actual_part, search_name, tracing=None):
         # Verify argument types:
         assert isinstance(actual_part, bom.ActualPart)
+        assert isinstance(search_name, str)
         assert isinstance(tracing, str) or tracing is None
 
         # Perform any requested *tracing*:
@@ -252,9 +260,12 @@ class FindChips(bom.Panda):
                                 print(f"{tracing}{price_break.quantity}: {price_text} ({currency})")
 
         # Wrap up any requested *tracing* and return the *vendor_parts*:
+        vendor_parts_size = len(vendor_parts)
+        print(f"Found {vendor_parts_size} vendors for '{manufacturer_part_name}' "
+              f"for part '{search_name}'.")
         if tracing is not None:
-            print(f"{tracing}=>FindChips.lookup(*, '{actual_part.manufacturer_part_name}')"
-                  f"=>[...](len={len(vendor_parts)})")
+            print(f"{tracing}<=FindChips.lookup(*, '{actual_part.manufacturer_part_name}')"
+                  f"=>[...](len={vendor_parts_size})")
         return vendor_parts
         
 
