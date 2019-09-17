@@ -5,19 +5,19 @@
 # ## License
 #
 # MIT License
-# 
+#
 # Copyright (c) 2019 Wayne C. Gramlich
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
 # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be included in all
 # copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -33,6 +33,7 @@ from currency_converter import CurrencyConverter
 import re
 import requests
 import time
+
 
 # FindChips:
 class FindChips(bom.Panda):
@@ -62,7 +63,7 @@ class FindChips(bom.Panda):
         assert isinstance(tracing, str) or tracing is None
 
         # Perform any requested *tracing*:
-        next_tracing = None if tracing is None else tracing + " "
+        # next_tracing = None if tracing is None else tracing + " "
         if tracing is not None:
             print(f"{tracing}=>FindChips.lookup(*, '{actual_part.manufacturer_part_name}')")
 
@@ -120,17 +121,17 @@ class FindChips(bom.Panda):
             # This code is in the *VendorPart* initialize now:
             # Strip some boring stuff off the end of *vendor_name*:
             # vendor_name = text_filter(vendor_name, str.isprintable)
-            # if vendor_name.endswith("Authorized Distributor"):
-            #    # Remove "Authorized Distributor" from end
-            #    # of *vendor_name*:
-            #    if vendor_name.endswith("Authorized Distributor"):
-            #        vendor_name = vendor_name[:-22].strip(" ")
-            #    if vendor_name.endswith("Member"):
-            #        # Remove "Member" from end of *vendor_name*:
-            #        vendor_name = vendor_name[:-6].strip(" ")
-            #    if vendor_name.endswith("ECIA (NEDA)"):
-            #        # Remove "ECIA (NEDA)" from end of *vendor_name*:
-            #        vendor_name = vendor_name[:-11].strip(" ")
+            if vendor_name.endswith("Authorized Distributor"):
+                # Remove "Authorized Distributor" from end
+                # of *vendor_name*:
+                if vendor_name.endswith("Authorized Distributor"):
+                    vendor_name = vendor_name[:-22].strip(" ")
+                if vendor_name.endswith("Member"):
+                    # Remove "Member" from end of *vendor_name*:
+                    vendor_name = vendor_name[:-6].strip(" ")
+                if vendor_name.endswith("ECIA (NEDA)"):
+                    # Remove "ECIA (NEDA)" from end of *vendor_name*:
+                    vendor_name = vendor_name[:-11].strip(" ")
 
             # Extract *currency* from *distributor_tree*:
             currency = "USD"
@@ -171,7 +172,9 @@ class FindChips(bom.Panda):
                         # Some sites do not report stock, and leave them
                         # empty.  We just leave *stock* as zero in this case:
                         if len(stock_text) != 0:
-                            stock = min(int(stock_text), 1000000)
+                            stock = min(int(stock_text), 100000000)
+                        if tracing is not None:
+                            print(f"{tracing}stock_text='{stock_text}'")
 
                     # The *manufacturer_name* is found as:
                     #    <td class="td-mfg"><span>manufacturer_name</span></td>
@@ -267,7 +270,7 @@ class FindChips(bom.Panda):
             print(f"{tracing}<=FindChips.lookup(*, '{actual_part.manufacturer_part_name}')"
                   f"=>[...](len={vendor_parts_size})")
         return vendor_parts
-        
+
 
 def panda_get(tracing=None):
     # Verify argument types:
@@ -285,4 +288,3 @@ def panda_get(tracing=None):
     if tracing is not None:
         print(f"{tracing}<=findchips.py:panda_get()=>*")
     return find_chips
-
