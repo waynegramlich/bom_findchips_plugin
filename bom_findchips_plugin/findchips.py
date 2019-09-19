@@ -28,57 +28,47 @@
 
 # Packages need by this module:
 from bom_manager import bom
+from bom_manager.tracing import trace
 import bs4
 from currency_converter import CurrencyConverter
 import re
 import requests
 import time
 
-
 # FindChips:
 class FindChips(bom.Panda):
 
-    # FindChips.__initi__():
-    def __init__(self, tracing=None):
+    # FindChips.__init__():
+    @trace(1)
+    def __init__(self, tracing=""):
         # Verify argument types:
-        assert isinstance(tracing, str) or tracing is None
-
-        # Perform any requested *tracing*:
-        next_tracing = None if tracing is None else tracing + " "
-        if tracing is not None:
-            print(f"{tracing}=>FindChips.__init__()")
+        assert isinstance(tracing, str)
 
         # Initialize the super class of the *FindChips* object (i.e. *self*):
-        super().__init__("FindChips", tracing=next_tracing)
-
-        # Perform any requested *tracing*:
-        if tracing is not None:
-            print(f"{tracing}<=FindChips.__init__()")
+        super().__init__("FindChips")
 
     # FindChips.vendor_parts_lookup():
-    def vendor_parts_lookup(self, actual_part, search_name, tracing=None):
+    @trace(1)
+    def vendor_parts_lookup(self, actual_part, search_name, tracing=""):
         # Verify argument types:
         assert isinstance(actual_part, bom.ActualPart)
         assert isinstance(search_name, str)
-        assert isinstance(tracing, str) or tracing is None
-
-        # Perform any requested *tracing*:
-        # next_tracing = None if tracing is None else tracing + " "
-        if tracing is not None:
-            print(f"{tracing}=>FindChips.lookup(*, '{actual_part.manufacturer_part_name}')")
+        assert isinstance(tracing, str)
 
         # Grab some values from *actual_part* (i.e. *self*):
         manufacturer_part_name = actual_part.manufacturer_part_name
         original_manufacturer_part_name = manufacturer_part_name
 
+        assert False, "Find chips is FINALLY beding called again!"
+
         # Trace every time we send a message to findchips:
-        if tracing is not None:
+        if tracing:
             print(f"{tracing}manufacturer_part_name='{manufacturer_part_name}'")
 
         # Grab a page of information about *part_name* using *findchips_url*:
         url_part_name = bom.Encode.to_url(manufacturer_part_name)
         findchips_url = "http://www.findchips.com/search/" + url_part_name
-        if tracing is not None:
+        if tracing:
             print(f"{tracing}findchips_url='findchips_url'")
         findchips_response = requests.get(findchips_url)
         findchips_text = findchips_response.text.encode("ascii", "ignore")
@@ -173,7 +163,7 @@ class FindChips(bom.Panda):
                         # empty.  We just leave *stock* as zero in this case:
                         if len(stock_text) != 0:
                             stock = min(int(stock_text), 100000000)
-                        if tracing is not None:
+                        if tracing:
                             print(f"{tracing}stock_text='{stock_text}'")
 
                     # The *manufacturer_name* is found as:
@@ -250,7 +240,7 @@ class FindChips(bom.Panda):
                         vendor_parts.append(vendor_part)
 
                         # Print stuff out if *trace* in enabled:
-                        if tracing is not None:
+                        if tracing:
                             # Print everything out:
                             print(f"{tracing}vendor_name='{vendor_name}'")
                             print(f"{tracing}vendor_part_name='{vendor_part_name}'")
@@ -266,25 +256,16 @@ class FindChips(bom.Panda):
         vendor_parts_size = len(vendor_parts)
         print(f"Found {vendor_parts_size} vendors for '{manufacturer_part_name}' "
               f"for part '{search_name}'.")
-        if tracing is not None:
+        if tracing:
             print(f"{tracing}<=FindChips.lookup(*, '{actual_part.manufacturer_part_name}')"
                   f"=>[...](len={vendor_parts_size})")
         return vendor_parts
 
 
-def panda_get(tracing=None):
+def panda_get(tracing=""):
     # Verify argument types:
-    assert isinstance(tracing, str) or tracing is None
-
-    # Perform any requested *tracing*:
-    next_tracing = None if tracing is None else tracing + " "
-    if tracing is not None:
-        print(f"{tracing}=>findchips.py:panda_get()")
+    assert isinstance(tracing, str)
 
     # Create the *find_chips* object:
-    find_chips = FindChips(tracing=next_tracing)
-
-    # Wrap up any requested *tracing* and return *find_chips*:
-    if tracing is not None:
-        print(f"{tracing}<=findchips.py:panda_get()=>*")
+    find_chips = FindChips()
     return find_chips
