@@ -64,8 +64,6 @@ class FindChips(bom.Panda):
         manufacturer_part_name = actual_part.manufacturer_part_name
         original_manufacturer_part_name = manufacturer_part_name
 
-        assert False, "Find chips is FINALLY beding called again!"
-
         # Trace every time we send a message to findchips:
         if tracing:
             print(f"{tracing}manufacturer_part_name='{manufacturer_part_name}'")
