@@ -47,6 +47,11 @@ class FindChips(bom.Panda):
         # Initialize the super class of the *FindChips* object (i.e. *self*):
         super().__init__("FindChips")
 
+    # FindChips.__str__():
+    def __str__(self):
+        panda = self
+        return f"Panda('FindChips')"
+
     # FindChips.vendor_parts_lookup():
     @trace(1)
     def vendor_parts_lookup(self, actual_part, search_name, tracing=""):
