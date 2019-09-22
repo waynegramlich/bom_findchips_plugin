@@ -35,6 +35,7 @@ import re
 import requests
 import time
 
+
 # FindChips:
 class FindChips(bom.Panda):
 
@@ -49,7 +50,7 @@ class FindChips(bom.Panda):
 
     # FindChips.__str__():
     def __str__(self):
-        panda = self
+        # panda = self
         return f"Panda('FindChips')"
 
     # FindChips.vendor_parts_lookup():
