@@ -29,11 +29,12 @@
 # Packages need by this module:
 from bom_manager import bom
 from bom_manager.tracing import trace
-import bs4
-from currency_converter import CurrencyConverter
+import bs4  # type: ignore
+from currency_converter import CurrencyConverter  # type: ignore
 import re
 import requests
 import time
+from typing import Any, Dict, List, Optional
 
 
 # FindChips:
@@ -41,57 +42,50 @@ class FindChips(bom.Panda):
 
     # FindChips.__init__():
     @trace(1)
-    def __init__(self, tracing=""):
-        # Verify argument types:
-        assert isinstance(tracing, str)
-
+    def __init__(self, tracing: str = "") -> None:
         # Initialize the super class of the *FindChips* object (i.e. *self*):
         super().__init__("FindChips")
 
     # FindChips.__str__():
-    def __str__(self):
-        # panda = self
+    def __str__(self) -> str:
         return f"Panda('FindChips')"
 
     # FindChips.vendor_parts_lookup():
     @trace(1)
-    def vendor_parts_lookup(self, actual_part, search_name, tracing=""):
-        # Verify argument types:
-        assert isinstance(actual_part, bom.ActualPart)
-        assert isinstance(search_name, str)
-        assert isinstance(tracing, str)
-
+    def vendor_parts_lookup(self, actual_part: bom.ActualPart, search_name: str,
+                            tracing: str = "") -> List[bom.VendorPart]:
         # Grab some values from *actual_part* (i.e. *self*):
-        manufacturer_part_name = actual_part.manufacturer_part_name
-        original_manufacturer_part_name = manufacturer_part_name
+        manufacturer_part_name: str = actual_part.manufacturer_part_name
+        original_manufacturer_part_name: str = manufacturer_part_name
 
         # Trace every time we send a message to findchips:
         if tracing:
             print(f"{tracing}manufacturer_part_name='{manufacturer_part_name}'")
 
         # Grab a page of information about *part_name* using *findchips_url*:
-        url_part_name = bom.Encode.to_url(manufacturer_part_name)
-        findchips_url = "http://www.findchips.com/search/" + url_part_name
+        url_part_name: str = bom.Encode.to_url(manufacturer_part_name)
+        findchips_url: str = "http://www.findchips.com/search/" + url_part_name
         if tracing:
             print(f"{tracing}findchips_url='findchips_url'")
-        findchips_response = requests.get(findchips_url)
-        findchips_text = findchips_response.text.encode("ascii", "ignore")
+        findchips_response: requests.Response = requests.get(findchips_url)
+        findchips_text: str = str(findchips_response.text)
 
         # Parse the *findchips_text* into *find_chips_tree*:
-        findchips_tree = bs4.BeautifulSoup(findchips_text, "html.parser")
+        findchips_tree: bs4.BeautifulSoup = bs4.BeautifulSoup(findchips_text, "html.parser")
 
         # if trace:
         #    print(findchips_tree.prettify())
 
         # We use regular expressions to strip out unnecessary characters
         # in numbrers:
-        digits_only_re = re.compile("\\D")
+        digits_only_re: Any = re.compile("\\D")
 
         # Result is returned in *vendor_parts*:
-        vendor_parts = list()
+        vendor_parts: List[bom.VendorPart] = list()
 
         # Currently, there is a <div class="distributor_results"> tag for
         # each distributor:
+        ditributor_tree: bs4.element.Tag
         for distributor_tree in findchips_tree.find_all("div", class_="distributor-results"):
             # if trace:
             #        print("**************************************************")
@@ -99,11 +93,13 @@ class FindChips(bom.Panda):
 
             # The vendor name is burried in:
             #   <h3 class="distributor-title"><a ...>vendor name</a></h3>:
-            vendor_name = None
+            vendor_name: Optional[str] = None
+            h3_tree: bs4.element.tag
             for h3_tree in distributor_tree.find_all(
               "h3", class_="distributor-title"):
                 # print("&&&&&&&&&&&&&&&&&&&&&&&")
                 # print(h3_tree.prettify())
+                a_tre: bs4.element_tag
                 for a_tree in h3_tree.find_all("a"):
                     vendor_name = a_tree.get_text().strip()
 
@@ -128,28 +124,32 @@ class FindChips(bom.Panda):
                     vendor_name = vendor_name[:-11].strip(" ")
 
             # Extract *currency* from *distributor_tree*:
-            currency = "USD"
+            currency: str = "USD"
             try:
                 currency = distributor_tree["data-currencycode"]
             except ValueError:
                 pass
 
             # All of the remaining information is found in <table>...</table>:
+            table_tree: bs4.element.Tag
             for table_tree in distributor_tree.find_all("table"):
                 # print(table_tree.prettify())
 
                 # There two rows per table.  The first row has the headings
                 # and the second row has the data.  The one with the data
                 # has a class of "row" -- <row clase="row"...> ... </row>:
+                row_tree: bs4.element.Tag
                 for row_tree in table_tree.find_all("tr", class_="row"):
                     # Now we grab the *vendor_part_name*.  Some vendors
                     # (like Arrow) use the *manufacturer_part_name* as their
                     # *vendor_part_name*.  The data is in:
                     #     <span class="additional-value"> ... </span>:
-                    vendor_part_name = manufacturer_part_name
+                    vendor_part_name: str = manufacturer_part_name
+                    span1_tree: bs4.element.Tag
                     for span1_tree in row_tree.find_all(
                       "span", class_="td-desc-distributor"):
                         # print(span1_tree.prettify())
+                        span2_tree: bs4.elementTag
                         for span2_tree in span1_tree.find_all(
                           "span", class_="additional-value"):
                             # Found it; grab it, encode it, and strip it:
@@ -157,11 +157,11 @@ class FindChips(bom.Panda):
 
                     # The *stock* count is found as:
                     #    <td class="td-stock">stock</td>
-                    stock = 0
-                    stock_tree = row_tree.find("td", class_="td-stock")
+                    stock: int = 0
+                    stock_tree: bs4.element.Tag = row_tree.find("td", class_="td-stock")
                     if stock_tree is not None:
                         # Strip out commas, space, etc.:
-                        stock_text = \
+                        stock_text: str = \
                           digits_only_re.sub("", stock_tree.get_text())
                         # Some sites do not report stock, and leave them
                         # empty.  We just leave *stock* as zero in this case:
@@ -172,9 +172,10 @@ class FindChips(bom.Panda):
 
                     # The *manufacturer_name* is found as:
                     #    <td class="td-mfg"><span>manufacturer_name</span></td>
-                    manufacturer_name = ""
+                    manufacturer_name: str = ""
                     for mfg_name_tree in row_tree.find_all(
                       "td", class_="td-mfg"):
+
                         for span_tree in mfg_name_tree.find_all("span"):
                             # Found it; grab it, encode it, and strip it:
                             manufacturer_name = span_tree.get_text().strip()
@@ -202,35 +203,38 @@ class FindChips(bom.Panda):
                     price_list_tree = row_tree.find("td", class_="td-price")
                     if price_list_tree is not None:
                         for li_tree in price_list_tree.find_all("li"):
-                            quantity_tree = li_tree.find("span", class_="label")
-                            price_tree = li_tree.find("span", class_="value")
+                            quantity_tree: bs4.element.Tag = li_tree.find("span", class_="label")
+                            price_tree: bs4.element.Tag = li_tree.find("span", class_="value")
                             if quantity_tree is not None and price_tree is not None:
                                 # We extract *quantity*:
-                                quantity_text = digits_only_re.sub("", quantity_tree.get_text())
-                                quantity = 1
+                                quantity_text: str = digits_only_re.sub("",
+                                                                        quantity_tree.get_text())
+                                quantity: int = 1
                                 if quantity_text != "":
                                     quantity = int(quantity_text)
 
                                 # Extract *price* using only digits and '.':
-                                price_text = ""
+                                price_text: str = ""
+                                character: str
                                 for character in price_tree.get_text():
                                     if character.isdigit() or character == ".":
                                         price_text += character
                                 price = float(price_text)
 
                                 # Look up the *exchange_rate* for *currency*:
-                                exchange_rates = bom.ActualPart.ACTUAL_PART_EXCHANGE_RATES
+                                exchange_rates: Dict[str, float] = \
+                                    bom.ActualPart.ACTUAL_PART_EXCHANGE_RATES
                                 if currency in exchange_rates:
                                     exchange_rate = exchange_rates[currency]
                                 else:
-                                    converter = CurrencyConverter()
+                                    converter: CurrencyConverter = CurrencyConverter()
                                     exchange_rate = converter.convert(1.0, currency, "USD")
                                     exchange_rates[currency] = exchange_rate
 
                                 # Sometimes we get a bogus price of 0.0 and
                                 # we just need to ignore the whole record:
                                 if price > 0.0:
-                                    price_break = bom.PriceBreak(
+                                    price_break: bom.PriceBreak = bom.PriceBreak(
                                       quantity, price * exchange_rate)
                                     price_breaks.append(price_break)
 
@@ -238,9 +242,10 @@ class FindChips(bom.Panda):
                     # we can construct the *vendor_part* and append it to
                     # *vendor_parts*:
                     if original_manufacturer_part_name == manufacturer_part_name:
-                        now = int(time.time())
-                        vendor_part = bom.VendorPart(actual_part, vendor_name, vendor_part_name,
-                                                     stock, price_breaks, now)
+                        now: int = int(time.time())
+                        vendor_part: bom.VendorPart = bom.VendorPart(actual_part, vendor_name,
+                                                                     vendor_part_name,
+                                                                     stock, price_breaks, now)
                         vendor_parts.append(vendor_part)
 
                         # Print stuff out if *trace* in enabled:
@@ -257,7 +262,7 @@ class FindChips(bom.Panda):
                                 print(f"{tracing}{price_break.quantity}: {price_text} ({currency})")
 
         # Wrap up any requested *tracing* and return the *vendor_parts*:
-        vendor_parts_size = len(vendor_parts)
+        vendor_parts_size: int = len(vendor_parts)
         print(f"Found {vendor_parts_size} vendors for '{manufacturer_part_name}' "
               f"for part '{search_name}'.")
         if tracing:
@@ -266,10 +271,7 @@ class FindChips(bom.Panda):
         return vendor_parts
 
 
-def panda_get(tracing=""):
-    # Verify argument types:
-    assert isinstance(tracing, str)
-
+def panda_get(tracing: str = "") -> FindChips:
     # Create the *find_chips* object:
-    find_chips = FindChips()
+    find_chips: FindChips = FindChips()
     return find_chips
