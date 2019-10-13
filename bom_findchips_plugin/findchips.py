@@ -28,7 +28,7 @@
 
 # Packages need by this module:
 from bom_manager import bom
-from bom_manager.tracing import trace
+from bom_manager.tracing import trace, tracing_get
 import bs4  # type: ignore
 from currency_converter import CurrencyConverter  # type: ignore
 import re
@@ -42,7 +42,7 @@ class FindChips(bom.Panda):
 
     # FindChips.__init__():
     @trace(1)
-    def __init__(self, tracing: str = "") -> None:
+    def __init__(self) -> None:
         # Initialize the super class of the *FindChips* object (i.e. *self*):
         super().__init__("FindChips")
 
@@ -52,13 +52,14 @@ class FindChips(bom.Panda):
 
     # FindChips.vendor_parts_lookup():
     @trace(1)
-    def vendor_parts_lookup(self, actual_part: bom.ActualPart, search_name: str,
-                            tracing: str = "") -> List[bom.VendorPart]:
+    def vendor_parts_lookup(self, actual_part: bom.ActualPart,
+                            search_name: str) -> List[bom.VendorPart]:
         # Grab some values from *actual_part* (i.e. *self*):
         manufacturer_part_name: str = actual_part.manufacturer_part_name
         original_manufacturer_part_name: str = manufacturer_part_name
 
         # Trace every time we send a message to findchips:
+        tracing: str = tracing_get()
         if tracing:
             print(f"{tracing}manufacturer_part_name='{manufacturer_part_name}'")
 
@@ -271,7 +272,7 @@ class FindChips(bom.Panda):
         return vendor_parts
 
 
-def panda_get(tracing: str = "") -> FindChips:
+def panda_get() -> FindChips:
     # Create the *find_chips* object:
     find_chips: FindChips = FindChips()
     return find_chips
